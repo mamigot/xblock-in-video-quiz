@@ -73,6 +73,10 @@ class InVideoQuizXBlock(StudioEditableXBlockMixin, XBlock):
         """
         Show to students when viewing courses
         """
+        video_type = ''
+        for item in self.get_parent().children:
+            if self.video_id == item.block_id:
+                video_type = item.block_type
         fragment = self.build_fragment(
             path_html='html/invideoquiz.html',
             paths_css=[
@@ -85,6 +89,7 @@ class InVideoQuizXBlock(StudioEditableXBlockMixin, XBlock):
             context={
                 'video_id': self.video_id,
                 'user_mode': self.user_mode,
+                'video_type': video_type,
             },
         )
         config = get_resource_string('js/src/config.js')

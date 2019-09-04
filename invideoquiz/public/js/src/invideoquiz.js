@@ -2,6 +2,7 @@
 function InVideoQuizXBlock(runtime, element) {
     $('.in-video-quiz-block').closest('.vert').hide();
     var videoId = $('.in-video-quiz-block').data('videoid');
+    var videoType = $('.in-video-quiz-block').data('type');
     if (!videoId || !InVideoQuizXBlock.config.hasOwnProperty(videoId)) {
         return;
     }
@@ -44,6 +45,15 @@ function InVideoQuizXBlock(runtime, element) {
 
     function setUpStudentView(component) {
         var componentIsVideo = component.data('id').indexOf(videoId) !== -1;
+        if (videoType === 'video_xblock') {
+            var $videoFrame = $("iframe[id$=" + videoId + "]").first();
+            $videoFrame.load(function () {
+                var $player = $videoFrame.contents().find("#video_player_" + videoId).first();
+                video = $player[0].player;
+                bindVideoEvents();
+            });
+        }
+
         if (componentIsVideo) {
             video = $('.video', component);
         } else {
@@ -57,7 +67,7 @@ function InVideoQuizXBlock(runtime, element) {
     }
 
     function getDimensions() {
-        var position = $('.tc-wrapper', video).position().top;
+        var position = $('.tc-wrapper', video).position();
         var height = $('.tc-wrapper', video).css('height');
         var width = $('.tc-wrapper', video).css('width');
         return {
@@ -102,8 +112,10 @@ function InVideoQuizXBlock(runtime, element) {
         var problemToDisplay;
 
         video.on('play', function () {
-          videoState = videoState || video.data('video-player-state');
-
+          if (videoType !== 'video_xblock'){
+              videoState = videoState || video.data('video-player-state');
+              video = videoState.videoPlayer;
+          }
           clearInterval(resizeIntervalObject);
 
           if (problemToDisplay) {
@@ -115,15 +127,19 @@ function InVideoQuizXBlock(runtime, element) {
           }
 
           intervalObject = setInterval(function () {
-            var videoTime = parseInt(videoState.videoPlayer.currentTime, 10);
+            if (videoType !== 'video_xblock'){
+                videoTime = parseInt(video.currentTime, 10);
+            } else {
+                videoTime = parseInt(video.currentTime(), 10);
+            }
             var problemToDisplayId = problemTimesMap[videoTime];
             if (problemToDisplayId && canDisplayProblem) {
               $('.wrapper-downloads, .video-controls', video).hide();
               $('#seq_content .vert-mod .vert').each(function () {
                 var isProblemToDisplay = $(this).data('id').indexOf(problemToDisplayId) !== -1;
                 if (isProblemToDisplay) {
-                  problemToDisplay = $('.xblock-student_view', this)
-                  videoState.videoPlayer.pause();
+                  problemToDisplay = $('.xblock-student_view', this);
+                  video.pause();
                   resizeInVideoProblem(problemToDisplay, getDimensions());
                   problemToDisplay.show();
                   problemToDisplay.css({display: 'block'});
@@ -135,7 +151,10 @@ function InVideoQuizXBlock(runtime, element) {
         });
 
         video.on('pause', function () {
-          videoState = videoState || video.data('video-player-state');
+          if (videoType !== 'video_xblock') {
+              videoState = videoState || video.data('video-player-state');
+              video = videoState.videoPlayer;
+          }
           clearInterval(intervalObject);
           if (problemToDisplay) {
             resizeIntervalObject = setInterval(function () {
@@ -147,7 +166,7 @@ function InVideoQuizXBlock(runtime, element) {
             }, resizeIntervalTime);
             $('.in-video-continue', problemToDisplay).on('click', function () {
               $('.wrapper-downloads, .video-controls', video).show();
-              videoState.videoPlayer.play();
+              video.play();
             });
           }
         });
