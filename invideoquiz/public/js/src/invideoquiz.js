@@ -1,8 +1,13 @@
 /* Javascript for InVideoQuizXBlock. */
 function InVideoQuizXBlock(runtime, element) {
     $('.in-video-quiz-block').closest('.vert').hide();
-    var videoId = $('.in-video-quiz-block').data('videoid');
-    var videoType = $('.in-video-quiz-block').data('type');
+
+    // Getting ID and type of inserted video
+    // for default video player videoType = 'video'
+    var videoId = $('.in-video-quiz-block').data('videoid'),
+        videoType = $('.in-video-quiz-block').data('type'),
+        customVideoXblockType = 'video_xblock';
+
     if (!videoId || !InVideoQuizXBlock.config.hasOwnProperty(videoId)) {
         return;
     }
@@ -45,7 +50,11 @@ function InVideoQuizXBlock(runtime, element) {
 
     function setUpStudentView(component) {
         var componentIsVideo = component.data('id').indexOf(videoId) !== -1;
-        if (videoType === 'video_xblock') {
+
+        // Default video player and custom video_xblock have different realizations
+        // Custom video_xblock is realized in iframe and using videoJS library.
+        // To support video_xblock has been added:
+        if (videoType === customVideoXblockType) {
             var $videoFrame = $("iframe[id$=" + videoId + "]").first();
             $videoFrame.load(function () {
                 var $player = $videoFrame.contents().find("#video_player_" + videoId).first();
@@ -54,6 +63,7 @@ function InVideoQuizXBlock(runtime, element) {
             });
         }
 
+        // Default video player is located inside div-element with class = 'video'
         if (componentIsVideo) {
             video = $('.video', component);
         } else {
@@ -67,9 +77,9 @@ function InVideoQuizXBlock(runtime, element) {
     }
 
     function getDimensions() {
-        var position = $('.tc-wrapper', video).position();
-        var height = $('.tc-wrapper', video).css('height');
-        var width = $('.tc-wrapper', video).css('width');
+        var position = $('.tc-wrapper', video).position(),
+            height = $('.tc-wrapper', video).css('height'),
+            width = $('.tc-wrapper', video).css('width');
         return {
           'top': position,
           'height': height,
@@ -106,13 +116,13 @@ function InVideoQuizXBlock(runtime, element) {
 
     // Bind In Video Quiz display to video time, as well as play and pause buttons
     function bindVideoEvents() {
-        var canDisplayProblem = true;
-        var intervalObject;
-        var resizeIntervalObject;
-        var problemToDisplay;
+        var canDisplayProblem = true,
+            intervalObject,
+            resizeIntervalObject,
+            problemToDisplay;
 
         video.on('play', function () {
-          if (videoType !== 'video_xblock'){
+          if (videoType !== customVideoXblockType){
               videoState = videoState || video.data('video-player-state');
               video = videoState.videoPlayer;
           }
@@ -127,9 +137,11 @@ function InVideoQuizXBlock(runtime, element) {
           }
 
           intervalObject = setInterval(function () {
-            if (videoType !== 'video_xblock'){
+            if (videoType !== customVideoXblockType){
+                // Default video player is HTMLMediaElement and it has `currentTime` property
                 videoTime = parseInt(video.currentTime, 10);
             } else {
+                // Custom video_xblock is player instanse of the videoJS and it has `currentTime()` method
                 videoTime = parseInt(video.currentTime(), 10);
             }
             var problemToDisplayId = problemTimesMap[videoTime];
@@ -151,7 +163,7 @@ function InVideoQuizXBlock(runtime, element) {
         });
 
         video.on('pause', function () {
-          if (videoType !== 'video_xblock') {
+          if (videoType !== customVideoXblockType) {
               videoState = videoState || video.data('video-player-state');
               video = videoState.videoPlayer;
           }
