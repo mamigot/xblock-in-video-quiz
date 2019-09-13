@@ -3,10 +3,11 @@ function InVideoQuizXBlock(runtime, element) {
     $('.in-video-quiz-block').closest('.vert').hide();
 
     // Getting ID and type of inserted video
-    // for default video player videoType = 'video'
+    // For default video player videoType = 'video'
+    // Type of the custom video_xblock is 'video_xblock'
     var videoId = $('.in-video-quiz-block').data('videoid'),
         videoType = $('.in-video-quiz-block').data('type'),
-        customVideoXblockType = 'video_xblock';
+        CUSTOM_VIDEO_XBLOCK = 'video_xblock';
 
     if (!videoId || !InVideoQuizXBlock.config.hasOwnProperty(videoId)) {
         return;
@@ -54,7 +55,7 @@ function InVideoQuizXBlock(runtime, element) {
         // Default video player and custom video_xblock have different realizations
         // Custom video_xblock is realized in iframe and using videoJS library.
         // To support video_xblock has been added:
-        if (videoType === customVideoXblockType) {
+        if (videoType === CUSTOM_VIDEO_XBLOCK) {
             var $videoFrame = $("iframe[id$=" + videoId + "]").first();
             $videoFrame.load(function () {
                 var $player = $videoFrame.contents().find("#video_player_" + videoId).first();
@@ -122,7 +123,7 @@ function InVideoQuizXBlock(runtime, element) {
             problemToDisplay;
 
         video.on('play', function () {
-          if (videoType !== customVideoXblockType){
+          if (videoType !== CUSTOM_VIDEO_XBLOCK){
               videoState = videoState || video.data('video-player-state');
               video = videoState.videoPlayer;
           }
@@ -137,7 +138,7 @@ function InVideoQuizXBlock(runtime, element) {
           }
 
           intervalObject = setInterval(function () {
-            if (videoType !== customVideoXblockType){
+            if (videoType !== CUSTOM_VIDEO_XBLOCK){
                 // Default video player is HTMLMediaElement and it has `currentTime` property
                 videoTime = parseInt(video.currentTime, 10);
             } else {
@@ -163,7 +164,7 @@ function InVideoQuizXBlock(runtime, element) {
         });
 
         video.on('pause', function () {
-          if (videoType !== customVideoXblockType) {
+          if (videoType !== CUSTOM_VIDEO_XBLOCK) {
               videoState = videoState || video.data('video-player-state');
               video = videoState.videoPlayer;
           }
