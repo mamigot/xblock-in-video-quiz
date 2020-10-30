@@ -2,23 +2,19 @@ sudo: false
 language: python
 cache: pip
 python:
-    - '2.7'
+- 3.5
+- 3.8
 before_install:
-    - 'uname -a'
-    - 'python --version'
+- uname -a
+- python --version
 install:
-    - 'pip install tox'
-    - 'virtualenv --version'
-    - 'easy_install --version'
-    - 'pip --version'
-    - 'tox --version'
+- pip install -r requirements/travis.txt
 script:
-    - 'tox -v'
+- tox -v
 branches:
-    only:
-      - 'master'
+  only:
+  - master
 env:
-    - TOXENV=py27-dj18
-    - TOXENV=coveralls
-    - TOXENV=pep8
-    - TOXENV=pylint
+- TOXENV=django22
+- TOXENV=coverage
+- TOXENV=quality
